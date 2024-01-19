@@ -5,4 +5,6 @@ This is a hobby project about creating a genetic algorithm which can create fanc
 ## TODO
 
 - Find the proper tools for the job
-- Find some time for this s**t
+  - Python is our language of choice
+  - Probably https://github.com/ljvmiranda921/seagull to represent the game
+- Find some time for this sh*t
