@@ -28,7 +28,8 @@ ROWS = 10
 COLUMNS = 10
 POPULATION = 1000
 GENERATIONS = 30
-RUN = 20
+RUN = 7
+RAN_PERC = .1
 
 def pprint(board):
     for row in board:
@@ -85,16 +86,20 @@ def random_gene(percent = .15):
         positions.add((x, y))
         board[x][y] = 1
     return board
-def round_robin(p):
+
+def round_robin(p, ecosystems):
     new_population = []
-    for _ in range(POPULATION):
+    for i in range(POPULATION):
+        if i < round(POPULATION * RAN_PERC):
+            new_population.append(random_gene())
+            continue
         sel = random()
         s = p[0]
-        i = 0
+        j = 0
         while s < sel:
-            i += 1
-            s += p[i]
-        new_population.append(i)
+            j += 1
+            s += p[j]
+        new_population.append(ecosystems[j])
     return new_population
 
 
@@ -108,8 +113,7 @@ for _ in range(GENERATIONS):
 
     t = targets(ecosystems)
     p = probabilities(t)
-    r = round_robin(p)
-    ecosystems = [ecos_copy[i] for i in r]
+    ecosystems = round_robin(p, ecosystems)
 
 
 t = targets(ecosystems)
@@ -118,9 +122,9 @@ print(t)
 print(max(p))
 print(max(t))
 
-example = ecosystems[0]
+example = ecosystems[-1]
 pprint(example)
 for _ in range(RUN):
-    example = next_it([example])
+    example = next_it([example])[0]
     print()
     pprint(example)
