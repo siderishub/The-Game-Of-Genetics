@@ -21,12 +21,14 @@
 # board.view()
 # plt.show()
 
-from random import randint
-from time import sleep
+from random import randint, random
+from copy import deepcopy
 
-ROWS = 20
-COLUMNS = 50
+ROWS = 10
+COLUMNS = 10
 POPULATION = 1000
+GENERATIONS = 30
+RUN = 20
 
 def pprint(board):
     for row in board:
@@ -55,6 +57,11 @@ def next_it(ecosystem):
         n.append(copy)
     return n
 
+def create_ecosystem():
+    ecosystems = []
+    for _ in range(POPULATION):
+        ecosystems.append(random_gene())
+    return ecosystems
 
 def targets(ecosystem):
     return [sum((sum(row) for row in board))**2 for board in ecosystem]
@@ -78,22 +85,42 @@ def random_gene(percent = .15):
         positions.add((x, y))
         board[x][y] = 1
     return board
+def round_robin(p):
+    new_population = []
+    for _ in range(POPULATION):
+        sel = random()
+        s = p[0]
+        i = 0
+        while s < sel:
+            i += 1
+            s += p[i]
+        new_population.append(i)
+    return new_population
 
-ecosystems = []
 
-for _ in range(POPULATION):
-    ecosystems.append(random_gene())
 
-t = targets(ecosystems)
-p = probabilities(t)
-print(t)
-print(max(p))
-print(t[0])
-print('-------')
+ecosystems = create_ecosystem()
 
-ecosystems = next_it(ecosystems)
+for _ in range(GENERATIONS):
+    ecos_copy = deepcopy(ecosystems)
+    for _ in range(RUN):
+        ecosystems = next_it(ecosystems)
+
+    t = targets(ecosystems)
+    p = probabilities(t)
+    r = round_robin(p)
+    ecosystems = [ecos_copy[i] for i in r]
+
+
 t = targets(ecosystems)
 p = probabilities(t)
 print(t)
 print(max(p))
 print(max(t))
+
+example = ecosystems[0]
+pprint(example)
+for _ in range(RUN):
+    example = next_it([example])
+    print()
+    pprint(example)
