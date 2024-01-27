@@ -26,9 +26,9 @@ from copy import deepcopy
 
 ROWS = 10
 COLUMNS = 10
-POPULATION = 1000
+POPULATION = 10000
 GENERATIONS = 30
-RUN = 7
+RUN = 10
 RAN_PERC = .1
 
 def pprint(board):
@@ -115,14 +115,12 @@ for _ in range(GENERATIONS):
     p = probabilities(t)
     ecosystems = round_robin(p, ecosystems)
 
-
+ecos_copy = deepcopy(ecosystems)
+for _ in range(RUN):
+    ecosystems = next_it(ecosystems)
 t = targets(ecosystems)
-p = probabilities(t)
-print(t)
-print(max(p))
-print(max(t))
 
-example = ecosystems[-1]
+example = ecos_copy[t.index(max(t))]
 pprint(example)
 for _ in range(RUN):
     example = next_it([example])[0]
