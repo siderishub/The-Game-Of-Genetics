@@ -1,35 +1,13 @@
-# import matplotlib.pyplot as plt
-# plt.rcParams["animation.html"] = "jshtml"
-#
-# import seagull as sg
-# from seagull.lifeforms import Pulsar
-#
-# # Initialize board
-# board = sg.Board(size=(19,60))
-#
-# # Add three Pulsar lifeforms in various locations
-# board.add(Pulsar(), loc=(1,1))
-# board.add(Pulsar(), loc=(1,22))
-# board.add(Pulsar(), loc=(1,42))
-# board.view()
-# # Simulate board
-# sim = sg.Simulator(board)
-# board.view()
-# sim.run(sg.rules.conway_classic, iters=1000)
-# board.view()
-# anim = sim.animate()
-# board.view()
-# plt.show()
-
 from random import randint, random
 from copy import deepcopy
 
-ROWS = 10
-COLUMNS = 10
-POPULATION = 10000
-GENERATIONS = 30
-RUN = 10
-RAN_PERC = .1
+ROWS = 9
+COLUMNS = 9
+POPULATION = 1000
+GENERATIONS = 20
+RUN = 7
+RAN_PERC = 0.15
+MUT_PERC = 0.2
 
 def pprint(board):
     for row in board:
@@ -64,11 +42,47 @@ def create_ecosystem():
         ecosystems.append(random_gene())
     return ecosystems
 
-def targets(ecosystem):
-    return [sum((sum(row) for row in board))**2 for board in ecosystem]
+def targets(ecosystems):
+    return [sum((sum(row) for row in board))**4 for board in ecosystems]
+
+def BFS(board, pos, bit):
+    bit = 1 - bit
+    queue = [pos]
+    vis = {pos}
+    while queue:
+        x, y = queue.pop(0)
+        if board[x][y] == bit:
+            board[x][y] = 1 - board[x][y]
+            return
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if i == j == 0:
+                    continue
+
+                pos = ((x-i)%ROWS, (y-j)%COLUMNS)
+                if pos not in vis:
+                    queue.append(pos)
+                    vis.add(pos)
+
+
+def mutation(ecosystem):
+    x = randint(0, ROWS-1)
+    y = randint(0, COLUMNS-1)
+
+    x2 = randint(0, ROWS-1)
+    y2 = randint(0, COLUMNS-1)
+
+    BFS(ecosystem, (x2, y2), ecosystem[x][y])
+
+    ecosystem[x][y] = 1 - ecosystem[x][y]
+    return ecosystem
+
 
 def probabilities(population):
     s = sum(population)
+    print('------------------')
+    print(s)
+    print(max(population))
     return [el/s for el in population]
 
 def random_gene(percent = .15):
@@ -87,6 +101,7 @@ def random_gene(percent = .15):
         board[x][y] = 1
     return board
 
+
 def round_robin(p, ecosystems):
     new_population = []
     for i in range(POPULATION):
@@ -99,7 +114,11 @@ def round_robin(p, ecosystems):
         while s < sel:
             j += 1
             s += p[j]
-        new_population.append(ecosystems[j])
+
+        if i < round(POPULATION * RAN_PERC) + round(POPULATION * MUT_PERC):
+            new_population.append(mutation(deepcopy(ecosystems[j])))
+        else:
+            new_population.append(ecosystems[j])
     return new_population
 
 
@@ -113,7 +132,7 @@ for _ in range(GENERATIONS):
 
     t = targets(ecosystems)
     p = probabilities(t)
-    ecosystems = round_robin(p, ecosystems)
+    ecosystems = round_robin(p, ecos_copy)
 
 ecos_copy = deepcopy(ecosystems)
 for _ in range(RUN):
